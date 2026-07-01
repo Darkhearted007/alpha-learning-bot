@@ -1,0 +1,72 @@
+
+services: postgres: image: postgres:16 container_name: core-postgres restart: unless-stopped environment:
+      POSTGRES_USER: coreuser
+      POSTGRES_PASSWORD: corepass
+      POSTGRES_DB: coredb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - core-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: core-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - core-network
+
+  api:
+    build:
+      context: ./api
+    container_name: core-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - core-network
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: core-portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - core-network
+
+  alpha-bot:
+    build:
+      context: ./alpha-learning-bot
+
+    container_name: alpha-learning-bot
+
+    restart: unless-stopped
+
+    command: ["node", "dist/index.js"]
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    networks:
+      - core-network
+
+networks:
+  core-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  portainer_data:

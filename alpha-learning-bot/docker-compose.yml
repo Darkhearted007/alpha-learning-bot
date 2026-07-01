@@ -1,0 +1,21 @@
+alpha-bot:
+  build:
+    context: ../alpha-learning-bot
+
+  container_name: alpha-learning-bot
+
+  restart: unless-stopped
+
+  command: ["node", "dist/index.js"]
+
+  ports:
+    - "4000:4000"
+
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+  networks:
+    - core-network
