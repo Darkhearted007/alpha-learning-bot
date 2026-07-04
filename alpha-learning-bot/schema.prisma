@@ -3,19 +3,24 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Trade {
   id            Int      @id @default(autoincrement())
-  asset         String
-  strategyScore Float
-  entryPrice    Float
-  exitPrice     Float?
-  pnl           Float?
+  cycle         Int
+  pair          String
+  action        String
+  entryReason   String   @map("entry_reason")
+  exitReason    String   @map("exit_reason")
   status        String
-  entryReason   Json
-  exitReason    Json?
-  createdAt     DateTime @default(now())
-  closedAt      DateTime?
+  pnl           Float
+  tags          String
+  marketContext Json     @map("market_context")
+  confidence    Float
+  strategy      String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("trades")
 }

@@ -29,7 +29,7 @@ export default function Dashboard(){
 
                 <MetricCard
                     title="Decision"
-                    value={state?.decision ?? "-"}
+                    value={state?.lastTrade?.action ?? state?.status ?? "-"}
                 />
 
                 <MetricCard

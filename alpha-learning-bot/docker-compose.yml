@@ -1,21 +1,63 @@
-alpha-bot:
-  build:
-    context: ../alpha-learning-bot
+services:
+  alpha-bot:
+    build:
+      context: .
+    container_name: alpha-learning-bot
+    restart: unless-stopped
+    command: ["node", "dist/index.js"]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: coreuser
+      DB_PASS: corepass
+      DB_NAME: coredb
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - core-network
 
-  container_name: alpha-learning-bot
+  postgres:
+    image: postgres:16
+    container_name: alpha-learning-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coreuser
+      POSTGRES_PASSWORD: corepass
+      POSTGRES_DB: coredb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coreuser -d coredb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - core-network
 
-  restart: unless-stopped
+  redis:
+    image: redis:7
+    container_name: alpha-learning-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - core-network
 
-  command: ["node", "dist/index.js"]
+networks:
+  core-network:
+    driver: bridge
 
-  ports:
-    - "4000:4000"
-
-  depends_on:
-    postgres:
-      condition: service_healthy
-    redis:
-      condition: service_healthy
-
-  networks:
-    - core-network
+volumes:
+  postgres-data:
