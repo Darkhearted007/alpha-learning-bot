@@ -26,11 +26,14 @@ export default function useDashboard() {
 
     useEffect(() => {
 
-        load();
+        const initialLoad = setTimeout(load,0);
 
         const timer = setInterval(load,3000);
 
-        return ()=>clearInterval(timer);
+        return ()=>{
+            clearTimeout(initialLoad);
+            clearInterval(timer);
+        };
 
     },[]);
 
